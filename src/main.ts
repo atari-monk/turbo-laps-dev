@@ -1,4 +1,4 @@
-import './style.css'
+import "./style.css";
 import "fullscreen-canvas-vanilla";
 import {
     createGameCanvas,
@@ -8,11 +8,13 @@ import type { EngineHook } from "zippy-shared-lib";
 import { GameEngine, GameEngineFactory } from "zippy-game-engine";
 import { RotatingRectScene } from "./rotating-rect-scene";
 import { CrossLinesScene } from "./cross-lines-scene";
+import { createSceneNavigator } from "./scene-navigator";
 
 window.addEventListener("load", async () => {
     const gameEngine = setupEngine();
     setupScenes(gameEngine);
     setupCanvas(gameEngine);
+    createSceneNavigator();
 });
 
 function setupEngine() {
