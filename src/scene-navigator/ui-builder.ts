@@ -29,6 +29,31 @@ export function createToggleButton(onToggle: () => void): HTMLButtonElement {
     return toggleBtn;
 }
 
+export function addHomeButton(
+    container: HTMLDivElement,
+    state: NavigatorState,
+    navigateMenu: (
+        container: HTMLDivElement,
+        state: NavigatorState,
+        sceneStructure: SceneTree
+    ) => void,
+    sceneStructure: SceneTree
+) {
+    // Only show home button if we're not at root level
+    if (state.path.length === 0) return;
+
+    const homeBtn = document.createElement("button");
+    homeBtn.textContent = "Home";
+    homeBtn.style.fontWeight = "bold";
+    homeBtn.onclick = () => {
+        // Reset to root level
+        state.path = [];
+        state.currentLevel = sceneStructure;
+        navigateMenu(container, state, sceneStructure);
+    };
+    container.appendChild(homeBtn);
+}
+
 export function addBackButton(
     container: HTMLDivElement,
     path: string[],
@@ -63,6 +88,9 @@ export function navigateMenu(
 ) {
     container.innerHTML = "";
     state.currentButtons = [];
+
+    // Add Home button first (only if not at home level)
+    addHomeButton(container, state, navigateMenu, sceneStructure);
 
     if (Array.isArray(state.currentLevel)) {
         // Scene list
