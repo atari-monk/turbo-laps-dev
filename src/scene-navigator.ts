@@ -1,5 +1,49 @@
 type SceneTree = Record<string, any>;
 
+// State interface
+interface NavigatorState {
+    currentLevel: SceneTree | string[];
+    path: string[];
+    currentButtons: HTMLButtonElement[];
+    navigationEnabled: boolean;
+    menuVisible: boolean;
+    navContainer?: HTMLDivElement;
+}
+
+// Config interface
+interface NavigatorConfig {
+    position:
+        | "top-left"
+        | "top-center"
+        | "top-right"
+        | "bottom-left"
+        | "bottom-center"
+        | "bottom-right";
+    theme: "dark" | "light" | "custom";
+    zIndex: number;
+    backgroundColor: string;
+    enableKeyboardNavigation: boolean;
+    enableToggleButton: boolean;
+    defaultVisible: boolean;
+    padding: string;
+    borderRadius: string;
+    gap: string;
+}
+
+// Default configuration
+const defaultConfig: NavigatorConfig = {
+    position: "bottom-center",
+    theme: "dark",
+    zIndex: 100,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    enableKeyboardNavigation: true,
+    enableToggleButton: true,
+    defaultVisible: true,
+    padding: "10px",
+    borderRadius: "5px",
+    gap: "10px",
+};
+
 const sceneStructure: SceneTree = {
     "Single Scene": {
         Prototype: ["Elipse-Track"],
@@ -33,35 +77,27 @@ const sceneStructure: SceneTree = {
     Game: ["TurboLaps-Pc", "TurboLaps-Mobile"],
 };
 
-let currentLevel: any = sceneStructure;
-let path: string[] = [];
-let currentButtons: HTMLButtonElement[] = [];
-
-let navigationEnabled = true;
-let menuVisible = true;
-let navContainer: HTMLDivElement;
-
 function getCurrentScene(): string | null {
     return new URLSearchParams(window.location.search).get("scene");
 }
 
-function getCurrentCategory(): string | null {
+function getCurrentCategory(path: string[]): string | null {
     return path[0] || null;
 }
 
-function getMode(): string {
-    const category = getCurrentCategory();
+function getMode(path: string[]): string {
+    const category = getCurrentCategory(path);
     return category === "Single Scene" ? "current" : "all";
 }
 
-function goToScene(scene: string) {
+function goToScene(scene: string, path: string[]) {
     const url = new URL(window.location.href);
-    url.searchParams.set("mode", getMode());
+    url.searchParams.set("mode", getMode(path));
     url.searchParams.set("scene", scene);
     window.location.href = url.toString();
 }
 
-function highlightCurrentScene() {
+function highlightCurrentScene(currentButtons: HTMLButtonElement[]) {
     const currentScene = getCurrentScene();
     currentButtons.forEach((btn) => {
         btn.style.backgroundColor =
@@ -69,7 +105,13 @@ function highlightCurrentScene() {
     });
 }
 
-function addBackButton(container: HTMLDivElement) {
+function addBackButton(
+    container: HTMLDivElement,
+    path: string[],
+    currentLevel: SceneTree | string[],
+    state: NavigatorState,
+    navigateMenu: (container: HTMLDivElement, state: NavigatorState) => void
+) {
     if (path.length === 0) return;
     const backBtn = document.createElement("button");
     backBtn.textContent = "Back";
@@ -77,91 +119,154 @@ function addBackButton(container: HTMLDivElement) {
     backBtn.onclick = () => {
         path.pop();
         currentLevel = sceneStructure;
-        for (const p of path) currentLevel = currentLevel[p];
-        navigateMenu(container);
+        for (const p of path) currentLevel = (currentLevel as SceneTree)[p];
+        state.currentLevel = currentLevel;
+        state.path = path;
+        navigateMenu(container, state);
     };
     container.appendChild(backBtn);
 }
 
-function navigateMenu(container: HTMLDivElement) {
+function navigateMenu(container: HTMLDivElement, state: NavigatorState) {
     container.innerHTML = "";
-    currentButtons = [];
+    state.currentButtons = [];
 
-    if (Array.isArray(currentLevel)) {
+    if (Array.isArray(state.currentLevel)) {
         // Scene list
-        currentLevel.forEach((scene) => {
+        state.currentLevel.forEach((scene) => {
             const btn = document.createElement("button");
             btn.textContent = scene;
-            btn.onclick = () => goToScene(scene);
+            btn.onclick = () => goToScene(scene, state.path);
             container.appendChild(btn);
-            currentButtons.push(btn);
+            state.currentButtons.push(btn);
         });
-        highlightCurrentScene();
-        addBackButton(container);
+        highlightCurrentScene(state.currentButtons);
+        addBackButton(
+            container,
+            state.path,
+            state.currentLevel,
+            state,
+            navigateMenu
+        );
     } else {
         // Menu keys
-        Object.keys(currentLevel).forEach((key) => {
+        Object.keys(state.currentLevel).forEach((key) => {
             const btn = document.createElement("button");
             btn.textContent = key;
             btn.onclick = () => {
-                path.push(key);
-                currentLevel = currentLevel[key];
-                navigateMenu(container);
+                state.path.push(key);
+                state.currentLevel = (state.currentLevel as SceneTree)[key];
+                navigateMenu(container, state);
             };
             container.appendChild(btn);
         });
-        addBackButton(container);
+        addBackButton(
+            container,
+            state.path,
+            state.currentLevel,
+            state,
+            navigateMenu
+        );
     }
 }
 
-export function createSceneNavigator() {
+function getPositionStyles(position: NavigatorConfig["position"]) {
+    const styles: Partial<CSSStyleDeclaration> = {
+        position: "absolute",
+        display: "flex",
+        flexWrap: "wrap",
+        zIndex: "100",
+    };
+
+    switch (position) {
+        case "top-left":
+            styles.top = "20px";
+            styles.left = "20px";
+            break;
+        case "top-center":
+            styles.top = "20px";
+            styles.left = "50%";
+            styles.transform = "translateX(-50%)";
+            break;
+        case "top-right":
+            styles.top = "20px";
+            styles.right = "20px";
+            break;
+        case "bottom-left":
+            styles.bottom = "20px";
+            styles.left = "20px";
+            break;
+        case "bottom-center":
+            styles.bottom = "20px";
+            styles.left = "50%";
+            styles.transform = "translateX(-50%)";
+            break;
+        case "bottom-right":
+            styles.bottom = "20px";
+            styles.right = "20px";
+            break;
+    }
+
+    return styles;
+}
+
+export function createSceneNavigator(config?: Partial<NavigatorConfig>) {
+    const finalConfig: NavigatorConfig = { ...defaultConfig, ...config };
+
+    const state: NavigatorState = {
+        currentLevel: sceneStructure,
+        path: [],
+        currentButtons: [],
+        navigationEnabled: true,
+        menuVisible: finalConfig.defaultVisible,
+    };
+
     // Create navigation container
-    navContainer = document.createElement("div");
-    navContainer.style.position = "absolute";
-    navContainer.style.bottom = "20px";
-    navContainer.style.left = "50%";
-    navContainer.style.transform = "translateX(-50%)";
-    navContainer.style.display = "flex";
-    navContainer.style.flexWrap = "wrap";
-    navContainer.style.gap = "10px";
-    navContainer.style.zIndex = "100";
-    navContainer.style.backgroundColor = "rgba(0,0,0,0.3)";
-    navContainer.style.padding = "10px";
-    navContainer.style.borderRadius = "5px";
+    const navContainer = document.createElement("div");
+    const positionStyles = getPositionStyles(finalConfig.position);
+
+    // Apply styles
+    Object.assign(navContainer.style, positionStyles, {
+        gap: finalConfig.gap,
+        backgroundColor: finalConfig.backgroundColor,
+        padding: finalConfig.padding,
+        borderRadius: finalConfig.borderRadius,
+    });
+
     document.body.appendChild(navContainer);
+    state.navContainer = navContainer;
 
     // Toggle button
-    const toggleBtn = document.createElement("button");
-    toggleBtn.textContent = "Toggle Menu / Arrows";
-    toggleBtn.style.position = "absolute";
-    toggleBtn.style.top = "10px";
-    toggleBtn.style.right = "10px";
-    toggleBtn.style.opacity = "0.5";
-    toggleBtn.style.zIndex = "200";
-    toggleBtn.onclick = () => {
-        menuVisible = !menuVisible;
-        navigationEnabled = menuVisible;
-        navContainer.style.display = menuVisible ? "flex" : "none";
-    };
-    document.body.appendChild(toggleBtn);
+    if (finalConfig.enableToggleButton) {
+        const toggleBtn = document.createElement("button");
+        toggleBtn.textContent = "Toggle Menu / Arrows";
+        toggleBtn.style.position = "absolute";
+        toggleBtn.style.top = "10px";
+        toggleBtn.style.right = "10px";
+        toggleBtn.style.opacity = "0.5";
+        toggleBtn.style.zIndex = "200";
+        toggleBtn.onclick = () => {
+            state.menuVisible = !state.menuVisible;
+            state.navigationEnabled = state.menuVisible;
+            navContainer.style.display = state.menuVisible ? "flex" : "none";
+        };
+        document.body.appendChild(toggleBtn);
+    }
 
     // Restore current scene from URL
-    currentLevel = sceneStructure;
-    path = [];
-
     const sceneInUrl = getCurrentScene();
     if (sceneInUrl) {
         outer: for (const topKey of Object.keys(sceneStructure)) {
             const topVal = sceneStructure[topKey];
             if (Array.isArray(topVal) && topVal.includes(sceneInUrl)) {
-                path = [topKey];
-                currentLevel = topVal;
+                state.path = [topKey];
+                state.currentLevel = topVal;
                 break outer;
             } else if (typeof topVal === "object") {
                 for (const subKey of Object.keys(topVal)) {
                     if (topVal[subKey].includes(sceneInUrl)) {
-                        path = [topKey, subKey];
-                        currentLevel = topVal[subKey];
+                        state.path = [topKey, subKey];
+                        state.currentLevel = topVal[subKey];
                         break outer;
                     }
                 }
@@ -169,22 +274,41 @@ export function createSceneNavigator() {
         }
     }
 
-    navigateMenu(navContainer);
+    navigateMenu(navContainer, state);
 
     // Arrow key navigation
-    window.addEventListener("keydown", (e) => {
-        if (!navigationEnabled) return;
-        if (!Array.isArray(currentLevel)) return;
-        const currentIndex = currentLevel.findIndex(
-            (s: string) => s === getCurrentScene()
-        );
-        let newIndex = currentIndex;
-        if (e.key === "ArrowRight" && currentIndex < currentLevel.length - 1)
-            newIndex++;
-        else if (e.key === "ArrowLeft" && currentIndex > 0) newIndex--;
-        else return;
+    if (finalConfig.enableKeyboardNavigation) {
+        window.addEventListener("keydown", (e) => {
+            if (!state.navigationEnabled) return;
+            if (!Array.isArray(state.currentLevel)) return;
+            const currentIndex = state.currentLevel.findIndex(
+                (s: string) => s === getCurrentScene()
+            );
+            let newIndex = currentIndex;
+            if (
+                e.key === "ArrowRight" &&
+                currentIndex < state.currentLevel.length - 1
+            )
+                newIndex++;
+            else if (e.key === "ArrowLeft" && currentIndex > 0) newIndex--;
+            else return;
 
-        goToScene(currentLevel[newIndex]);
-        highlightCurrentScene();
-    });
+            goToScene(state.currentLevel[newIndex], state.path);
+            highlightCurrentScene(state.currentButtons);
+        });
+    }
+
+    return {
+        getState: () => ({ ...state }),
+        showMenu: () => {
+            state.menuVisible = true;
+            state.navigationEnabled = true;
+            navContainer.style.display = "flex";
+        },
+        hideMenu: () => {
+            state.menuVisible = false;
+            state.navigationEnabled = false;
+            navContainer.style.display = "none";
+        },
+    };
 }
