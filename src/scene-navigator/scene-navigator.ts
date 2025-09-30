@@ -1,5 +1,6 @@
 import type { NavigatorState, NavigatorConfig, SceneTree } from "./types";
 import { defaultConfig, getPositionStyles } from "./config";
+import { createInitialState, getCurrentScene, getMode } from "./state-manager";
 
 const sceneStructure: SceneTree = {
     "Single Scene": {
@@ -33,19 +34,6 @@ const sceneStructure: SceneTree = {
     },
     Game: ["TurboLaps-Pc", "TurboLaps-Mobile"],
 };
-
-function getCurrentScene(): string | null {
-    return new URLSearchParams(window.location.search).get("scene");
-}
-
-function getCurrentCategory(path: string[]): string | null {
-    return path[0] || null;
-}
-
-function getMode(path: string[]): string {
-    const category = getCurrentCategory(path);
-    return category === "Single Scene" ? "current" : "all";
-}
 
 function goToScene(scene: string, path: string[]) {
     const url = new URL(window.location.href);
@@ -127,56 +115,13 @@ function navigateMenu(container: HTMLDivElement, state: NavigatorState) {
     }
 }
 
-// function getPositionStyles(position: NavigatorConfig["position"]) {
-//     const styles: Partial<CSSStyleDeclaration> = {
-//         position: "absolute",
-//         display: "flex",
-//         flexWrap: "wrap",
-//         zIndex: "100",
-//     };
-
-//     switch (position) {
-//         case "top-left":
-//             styles.top = "20px";
-//             styles.left = "20px";
-//             break;
-//         case "top-center":
-//             styles.top = "20px";
-//             styles.left = "50%";
-//             styles.transform = "translateX(-50%)";
-//             break;
-//         case "top-right":
-//             styles.top = "20px";
-//             styles.right = "20px";
-//             break;
-//         case "bottom-left":
-//             styles.bottom = "20px";
-//             styles.left = "20px";
-//             break;
-//         case "bottom-center":
-//             styles.bottom = "20px";
-//             styles.left = "50%";
-//             styles.transform = "translateX(-50%)";
-//             break;
-//         case "bottom-right":
-//             styles.bottom = "20px";
-//             styles.right = "20px";
-//             break;
-//     }
-
-//     return styles;
-// }
-
 export function createSceneNavigator(config?: Partial<NavigatorConfig>) {
     const finalConfig: NavigatorConfig = { ...defaultConfig, ...config };
 
-    const state: NavigatorState = {
-        currentLevel: sceneStructure,
-        path: [],
-        currentButtons: [],
-        navigationEnabled: true,
-        menuVisible: finalConfig.defaultVisible,
-    };
+    const state: NavigatorState = createInitialState(
+        sceneStructure,
+        finalConfig.defaultVisible
+    );
 
     // Create navigation container
     const navContainer = document.createElement("div");
