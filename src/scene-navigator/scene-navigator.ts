@@ -1,48 +1,5 @@
-type SceneTree = Record<string, any>;
-
-// State interface
-interface NavigatorState {
-    currentLevel: SceneTree | string[];
-    path: string[];
-    currentButtons: HTMLButtonElement[];
-    navigationEnabled: boolean;
-    menuVisible: boolean;
-    navContainer?: HTMLDivElement;
-}
-
-// Config interface
-interface NavigatorConfig {
-    position:
-        | "top-left"
-        | "top-center"
-        | "top-right"
-        | "bottom-left"
-        | "bottom-center"
-        | "bottom-right";
-    theme: "dark" | "light" | "custom";
-    zIndex: number;
-    backgroundColor: string;
-    enableKeyboardNavigation: boolean;
-    enableToggleButton: boolean;
-    defaultVisible: boolean;
-    padding: string;
-    borderRadius: string;
-    gap: string;
-}
-
-// Default configuration
-const defaultConfig: NavigatorConfig = {
-    position: "bottom-center",
-    theme: "dark",
-    zIndex: 100,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    enableKeyboardNavigation: true,
-    enableToggleButton: true,
-    defaultVisible: true,
-    padding: "10px",
-    borderRadius: "5px",
-    gap: "10px",
-};
+import type { NavigatorState, NavigatorConfig, SceneTree } from "./types";
+import { defaultConfig, getPositionStyles } from "./config";
 
 const sceneStructure: SceneTree = {
     "Single Scene": {
@@ -170,45 +127,45 @@ function navigateMenu(container: HTMLDivElement, state: NavigatorState) {
     }
 }
 
-function getPositionStyles(position: NavigatorConfig["position"]) {
-    const styles: Partial<CSSStyleDeclaration> = {
-        position: "absolute",
-        display: "flex",
-        flexWrap: "wrap",
-        zIndex: "100",
-    };
+// function getPositionStyles(position: NavigatorConfig["position"]) {
+//     const styles: Partial<CSSStyleDeclaration> = {
+//         position: "absolute",
+//         display: "flex",
+//         flexWrap: "wrap",
+//         zIndex: "100",
+//     };
 
-    switch (position) {
-        case "top-left":
-            styles.top = "20px";
-            styles.left = "20px";
-            break;
-        case "top-center":
-            styles.top = "20px";
-            styles.left = "50%";
-            styles.transform = "translateX(-50%)";
-            break;
-        case "top-right":
-            styles.top = "20px";
-            styles.right = "20px";
-            break;
-        case "bottom-left":
-            styles.bottom = "20px";
-            styles.left = "20px";
-            break;
-        case "bottom-center":
-            styles.bottom = "20px";
-            styles.left = "50%";
-            styles.transform = "translateX(-50%)";
-            break;
-        case "bottom-right":
-            styles.bottom = "20px";
-            styles.right = "20px";
-            break;
-    }
+//     switch (position) {
+//         case "top-left":
+//             styles.top = "20px";
+//             styles.left = "20px";
+//             break;
+//         case "top-center":
+//             styles.top = "20px";
+//             styles.left = "50%";
+//             styles.transform = "translateX(-50%)";
+//             break;
+//         case "top-right":
+//             styles.top = "20px";
+//             styles.right = "20px";
+//             break;
+//         case "bottom-left":
+//             styles.bottom = "20px";
+//             styles.left = "20px";
+//             break;
+//         case "bottom-center":
+//             styles.bottom = "20px";
+//             styles.left = "50%";
+//             styles.transform = "translateX(-50%)";
+//             break;
+//         case "bottom-right":
+//             styles.bottom = "20px";
+//             styles.right = "20px";
+//             break;
+//     }
 
-    return styles;
-}
+//     return styles;
+// }
 
 export function createSceneNavigator(config?: Partial<NavigatorConfig>) {
     const finalConfig: NavigatorConfig = { ...defaultConfig, ...config };

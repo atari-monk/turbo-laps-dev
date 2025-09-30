@@ -8,7 +8,7 @@ import type { EngineHook } from "zippy-shared-lib";
 import { GameEngine, GameEngineFactory } from "zippy-game-engine";
 import { RotatingRectScene } from "./rotating-rect-scene";
 import { CrossLinesScene } from "./cross-lines-scene";
-import { createSceneNavigator } from "./scene-navigator";
+import { createSceneNavigator } from "./scene-navigator/scene-navigator";
 
 window.addEventListener("load", async () => {
     const gameEngine = setupEngine();
