@@ -1,0 +1,26 @@
+[
+    {
+        "id": "Cross-Lines",
+        "name": "Cross Lines",
+        "description": "Crossing Lines to test setup",
+        "category": "test"
+    },
+    {
+        "id": "Rotating-Rectangle",
+        "name": "Rotating Rectangle",
+        "description": "Rotating Rectangle to test setup",
+        "category": "test"
+    },
+    {
+        "id": "Elipse-Track",
+        "name": "Ellipse Track",
+        "description": "Oval racing track with smooth curves",
+        "category": "track"
+    },
+    {
+        "id": "Rectangle-Track",
+        "name": "Rectangle Track",
+        "description": "Ovalish racing track with smooth curves",
+        "category": "track"
+    }
+]

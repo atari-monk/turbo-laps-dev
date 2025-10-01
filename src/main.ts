@@ -1,36 +1,76 @@
 import "./style.css";
 import "fullscreen-canvas-vanilla";
-import {
-    createGameCanvas,
-    type FullscreenCanvasOptions,
-} from "fullscreen-canvas-vanilla";
-import type { EngineHook } from "zippy-shared-lib";
-import { GameEngine, GameEngineFactory } from "zippy-game-engine";
-import { RotatingRectScene } from "./rotating-rect-scene";
-import { CrossLinesScene } from "./cross-lines-scene";
-import { createSceneNavigator } from "./scene-navigator";
+import { SceneSelector } from "./scene-navigator/scene-selector";
+import { ElipseTrack } from "./scenes/track/elipse-track";
+import { setupDevEnv } from "./utils/zippy-components";
+import { RectangleTrack } from "./scenes/track/rectangle-track";
+import { loadJsonData } from "./utils/web-basics";
+import type { TrackConfig } from "./scenes/track/types";
+import type { CrossLinesConfig, RotatingRectConfig } from "./scenes/test/types";
+import { CrossLines } from "./scenes/test/cross-lines";
+import { RotatingRect } from "./scenes/test/rotating-rect";
+import type { SceneInfo } from "./scene-navigator/types";
 
 window.addEventListener("load", async () => {
-    const gameEngine = setupEngine();
-    setupScenes(gameEngine);
-    setupCanvas(gameEngine);
-    createSceneNavigator();
+    const { canvas, engine } = await setupDevEnv();
+
+    const scene = new SceneSelector(
+        await loadJsonData<SceneInfo[]>("data/scenes.json")
+    ).selected;
+
+    if (scene) {
+        if (scene.id === "Cross-Lines") {
+            engine.registerScene(
+                scene.id,
+                new CrossLines(
+                    await loadJsonData<CrossLinesConfig>(
+                        "data/scene-config/cross-lines.json"
+                    )
+                )
+            );
+        }
+        if (scene.id === "Rotating-Rectangle") {
+            engine.registerScene(
+                scene.id,
+                new RotatingRect(
+                    await loadJsonData<RotatingRectConfig>(
+                        "data/scene-config/rotating-rect.json"
+                    )
+                )
+            );
+        }
+        if (scene.id === "Elipse-Track") {
+            engine.registerScene(
+                scene.id,
+                new ElipseTrack(
+                    canvas,
+                    await loadJsonData<TrackConfig>(
+                        "data/scene-config/track.json"
+                    )
+                )
+            );
+        }
+        if (scene.id === "Rectangle-Track") {
+            engine.registerScene(
+                scene.id,
+                new RectangleTrack(
+                    canvas,
+                    await loadJsonData<TrackConfig>(
+                        "data/scene-config/track.json"
+                    )
+                )
+            );
+        }
+        engine.transitionToScene(scene.id);
+    } else {
+        engine.registerScene(
+            "Rotating-Rectangle",
+            new RotatingRect(
+                await loadJsonData<RotatingRectConfig>(
+                    "data/scene-config/rotating-rect.json"
+                )
+            )
+        );
+        engine.transitionToScene("Rotating-Rectangle");
+    }
 });
-
-function setupEngine() {
-    const gameEngineFactory = new GameEngineFactory();
-    const gameEngine = gameEngineFactory.getGameEngine();
-    return gameEngine;
-}
-
-function setupScenes(gameEngine: GameEngine) {
-    gameEngine.registerScene("Cross Lines", new CrossLinesScene());
-    gameEngine.registerScene("Rotating Rectangle", new RotatingRectScene());
-    gameEngine.transitionToScene("Cross Lines");
-    gameEngine.transitionToScene("Rotating Rectangle");
-}
-
-function setupCanvas(gameEngine: EngineHook) {
-    const options: FullscreenCanvasOptions = { isAnimLoop: true };
-    createGameCanvas("canvas-container", "game-canvas", gameEngine, options);
-}

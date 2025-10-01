@@ -1,0 +1,32 @@
+{
+    "Scene": {
+        "Test": ["Cross-Lines", "Rotating-Rectangle"],
+        "Track": ["Elipse-Track", "Rectangle-Track"],
+        "Joystick": ["Virtual-Joystick", "Steerable-Rect", "Test-Car"],
+        "Mouse": ["Draw-a-Point"],
+        "Sound": ["Sound-Demo"],
+        "PCGame": [
+            "Car",
+            "Track-Boundary",
+            "Starting-Grid",
+            "Road-Markings",
+            "Track-Grass",
+            "Lap-Tracker",
+            "Game-Score",
+            "Menu",
+            "Countdown",
+            "Continue"
+        ]
+    },
+    "Composite": {
+        "Joystick": ["Joystick-Test", "XY-Joystick-Test", "Joystick-For-Car"],
+        "Tool": ["Track-Cursor"],
+        "PCGame": [
+            "Start-Race",
+            "Car-Out-Of-Track",
+            "Lap-Measurement",
+            "Race-Restart"
+        ]
+    },
+    "Game": ["TurboLaps-Pc", "TurboLaps-Mobile"]
+}

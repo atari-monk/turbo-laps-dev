@@ -19,7 +19,7 @@ export function createNavigationContainer(config: any): HTMLDivElement {
 
 export function createToggleButton(onToggle: () => void): HTMLButtonElement {
     const toggleBtn = document.createElement("button");
-    toggleBtn.textContent = "Toggle Menu / Arrows";
+    toggleBtn.textContent = "Menu";
     toggleBtn.style.position = "absolute";
     toggleBtn.style.top = "10px";
     toggleBtn.style.right = "10px";

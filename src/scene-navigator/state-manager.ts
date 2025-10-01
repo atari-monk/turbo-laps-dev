@@ -10,7 +10,7 @@ export function getCurrentCategory(path: string[]): string | null {
 
 export function getMode(path: string[]): string {
     const category = getCurrentCategory(path);
-    return category === "Single Scene" ? "current" : "all";
+    return category === "Scene" ? "current" : "all";
 }
 
 export function restoreStateFromURL(sceneStructure: SceneTree): {

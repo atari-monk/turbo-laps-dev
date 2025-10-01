@@ -1,0 +1,12 @@
+{
+    "trackWidth": 1500,
+    "trackHeight": 700,
+    "roadWidth": 180,
+    "roadColor": "#555",
+    "backgroundColor": "#2a2a2a",
+    "maxLaps": 5,
+    "centerX": 0,
+    "centerY": 0,
+    "radiusX": 750,
+    "radiusY": 350
+}

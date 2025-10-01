@@ -27,3 +27,10 @@ export interface NavigatorConfig {
     borderRadius: string;
     gap: string;
 }
+
+export interface SceneInfo {
+    id: string;
+    name: string;
+    description: string;
+    category: string;
+}
